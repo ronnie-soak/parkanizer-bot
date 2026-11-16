@@ -45,9 +45,13 @@ Required values:
 - `PARKANIZER_LOCATION`
 - `PARKANIZER_BOOKING_TAB_LABEL`
 - `PARKANIZER_AVAILABILITY_BUTTON_LABEL`
-- `PARKANIZER_REFRESH_SECONDS`
+- `PARKANIZER_REFRESH_MILLISECONDS`
 - `PARKANIZER_MAX_RUN_SECONDS`
 - `PARKANIZER_FUTURE_DAYS_LIMIT` (optional; leave blank for unlimited future dates)
+
+Optional:
+
+- `PARKANIZER_SESSION_DIR` (defaults to `.parkanizer-browser` and reuses a saved authenticated browser profile across runs)
 
 ## 5. Test the bot safely
 
@@ -57,12 +61,18 @@ python parkanizer_bot.py --list
 python parkanizer_bot.py --dry-run
 ```
 
-The `--list` mode inspects current bookable and waiting-queue state without taking any reservation action. The `--dry-run` mode evaluates availability without clicking the booking or confirmation control.
+The bot keeps a persistent browser session in `.parkanizer-browser` by default. It considers a session valid when the configured `PARKANIZER_BOOKING_TAB_LABEL` control is visible; `SIGN IN`/`SIGN UP` controls are not used to validate the session. If automatic session recovery fails, complete sign-in in the opened browser, then enter `y` in the terminal prompt to continue or `q` to quit. The bot waits until the configured booking tab is visible, saves the validated browser state, and continues the requested workflow. The `--list` mode inspects current bookable and waiting-queue state without taking any reservation action. The `--dry-run` mode evaluates availability without clicking the booking or confirmation control.
 
 ## 6. Run the bot normally
 
 ```bash
 python parkanizer_bot.py
+```
+
+You can override the persisted session directory with:
+
+```bash
+python parkanizer_bot.py --session-dir .my-session
 ```
 
 ## 7. Schedule the daily run
