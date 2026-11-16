@@ -1,0 +1,130 @@
+# Think Specification Contract (`think.md`)
+
+In agentic software development, narrative specifications (lengthy PRDs, free-form design docs) fail AI coding agents: they are ambiguous, bloat the context window, and mix option exploration with implementation details. This contract follows the Agentic Software Factory's [Think](https://alten-group.github.io/agentic-software-factory/guide/stage-think) stage.
+
+- `think.md` is the **Think record**: the options considered, the chosen approach, constraints, blast radius, and any decision record. It is decided here, by the Developer and the Architect, with AI exploring.
+- `plan.md` (governed separately by the `plan` skill) is derived downstream from a validated `think.md`.
+
+This contract defines the authoritative structure, headings, fields, and validation rules for `think.md`. `scripts/validate-think.mjs` enforces it.
+
+---
+
+## 1. Specifications Directory & Naming
+
+- Default: `specs/` (or `docs/specs/`).
+- Scoped features: `specs/<feature-name>/think.md`.
+- Issue-driven work: `specs/issue-<number>/think.md`.
+- File name is exactly `think.md` (lowercase ASCII). UTF-8 without BOM.
+
+Fields are written as bullets: `- **<Label>:** <value>`. Continuation lines (sub-bullets, tables, code blocks) belong to the preceding field. Fenced code blocks are opaque: headings and fields inside them are ignored. Where a section may be empty, write the exact literal `_None._`.
+
+---
+
+## 2. `think.md` Contract
+
+`think.md` contains **no source code** and **no task checklist**. The validator rejects fenced code blocks other than plain text or `mermaid`, checkbox items, and `### Step` headings.
+
+### Required Document Structure (In Exact Order)
+
+1. `# Think: <Feature or Task Name>`, followed by these level-two headings, in order:
+2. `## Business Need & Outcome`
+3. `## Options Considered`
+4. `## Chosen Approach`
+5. `## System Flow & Responsibilities`
+6. `## Constraints & Invariants`
+7. `## Blast Radius`
+8. `## Decision Record`
+9. `## Persistent Context Updates`
+10. `## Ambiguities & Open Questions`
+
+### Section Requirements
+
+#### `## Business Need & Outcome`
+- `Backlog Issue`: the issue (`#<number>`) or `triage.md` it comes from. When `triage.md` exists, reuse its evidence and system mapping; do not re-derive them.
+- `Problem Statement`, `Consumer` (who triggers or consumes the change), `Desired Outcome`.
+- Acceptance criteria are written in the Plan (`plan.md`), not here.
+
+#### `## Options Considered`
+2 to 4 options, each a level-3 heading `### Option <N>: <Name>` (sequential from 1), each with fields:
+- `Approach`
+- `Trade-offs`, `Cost`, `Risk`
+
+Include credible reuse of existing modules or dependencies versus a new implementation.
+
+#### `## Chosen Approach`
+- `Selected`: `Option <N>`, naming an existing option.
+- `Reasoning`: one short paragraph.
+- `Approved By`: after validation, `Automated by <agent identity> on YYYY-MM-DD`. Use `Pending` while incomplete. Human approval remains supported when explicitly requested, but is not mandatory (see Approval Stages).
+
+#### `## System Flow & Responsibilities`
+Grounded in the real codebase and Persistent Context. Never invent layers.
+- `Request Tracing`: how requests or events flow through the layers.
+- `Component Responsibilities`: each affected component and its single responsibility.
+- `Boundaries`: where the change begins and ends.
+
+#### `## Constraints & Invariants`
+- `Decision Records`: existing decision records that bound the solution, or `_None._`.
+- `Non-Negotiable Rules`: security, compliance, latency, schema compatibility, authorization, transaction boundaries, error envelopes.
+- `Side-Effect Constraints`: services, routes, or tables that must remain untouched, or `_None._`.
+
+#### `## Blast Radius`
+Classified once, here, as defined in the Factory's governance page. The tier sets the automated validation, rollback, and rollout evidence required in Prove, not a mandatory human sign-off.
+- `Tier`: `Low`, `Medium`, `High`, or `Critical`.
+- `Affected`: the APIs, schemas, queues, and consumers touched.
+- `Rationale`: why this tier.
+- `Rollback`: the rollback mechanism. **Required for `High` and `Critical`** (`_None._`, `None`, or `no rollback` are rejected); otherwise `_None._`.
+
+| Tier | Criteria |
+|---|---|
+| Low | Internal refactor, non-breaking schema change, copy edit behind green deterministic tests |
+| Medium | New public endpoint, schema addition, integration with an external vendor |
+| High | Auth, permissions, billing, PII processing, data migration |
+| Critical | Irreversible data migration, breaking public contract, infrastructure change |
+
+#### `## Decision Record`
+Required when the approach alters a public API, changes a database schema, or shifts service boundaries. AI selects and records the decision from repository evidence, with explicit automation attribution. Validate the record with the `decision-record` skill; never fabricate human sign-off.
+- `Required`: `yes` or `no`.
+- If `yes`: `Record` (workspace path) and `Status`: `Drafted` while incomplete, or `Automated by <identity> on YYYY-MM-DD` matching an Accepted Automation decision. Genuine human decisions may use `Signed by <name> (Architect) on YYYY-MM-DD`; placeholders and AI identities cannot masquerade as human signers.
+- If `no`: `Reason`.
+- A `Critical` tier always requires a decision record.
+
+#### `## Persistent Context Updates`
+Updates to Persistent Context identified here and carried into the Plan. Each is `- **Update:** \`path\` - what changes` for instructions, specifications, and glossary, or `- **Docs:** \`path\` - what changes` for documentation (the path must be under `website/docs/` or `docs/`, or be `README` or `CHANGELOG`). The downstream Plan must cover each path with a step.
+
+Documentation uses the `Docs` label. List every documentation file the change makes stale or incomplete (for example `website/docs/`, `docs/`, `README.md`, `CHANGELOG.md`), including behavior, configuration, CLI, and workflow changes as well as public API changes. The section must always make an explicit documentation decision: at least one `Docs` entry, or `- **Docs:** _None._ - <reason>` stating why no documentation changes. A bare `_None._` section is rejected, as is listing both Docs paths and `Docs: _None._`.
+
+#### `## Ambiguities & Open Questions`
+Unresolved questions that need human clarification, or `_None._`.
+
+---
+
+## 3. Approval Stages (`--stage draft|approved`, default `draft`)
+
+`validate-think.mjs` checks `--stage`. Explicit automated approval is accepted at both stages, with a non-placeholder identity and a real date; it never represents human review.
+
+| Stage | `think.md` `Approved By` |
+|---|---|
+| `draft` | `Pending`, or `Automated by <identity> on YYYY-MM-DD` after validation |
+| `approved` | `Automated by <identity> on YYYY-MM-DD`, or recorded Developer and Architect approvals |
+
+For human approvals, role strings are exact, dates real, and the two approvers distinct actual people. Placeholder and AI names cannot impersonate human approvers. Automated approval instead uses the explicit identity/date format above.
+
+---
+
+## 4. Anti-Patterns & Prohibitions
+
+1. **No monolithic narrative PRDs.** Requirements are fields, not essays.
+2. **No code in `think.md`.** Code is written once in the Code stage, not in Think or Plan.
+3. **No task checklists or `### Step` headings in `think.md`.** Sequencing belongs to the Plan stage.
+4. **No re-deriving Triage.** When `triage.md` exists, reuse its evidence and system mapping.
+5. **No forged human signatures.** Use `Automated by <identity> on YYYY-MM-DD` for AI decisions, including the decision-record Status in Think; reserve `Signed by <name> (Architect)` for actual human signatures.
+6. **No unvalidated approval.** Record automated approval only after the record and required decision records pass their controls.
+
+---
+
+## 5. Storage & Issue Attachment Convention
+
+In autonomous CI/CD pipelines (for example triggered by `ready`, `todo`, or `decision:todo` labels, or by `issues: [opened]` where Triage is not used):
+
+- **Non-destructive Issue Comment**: never overwrite the human issue body. Post an **Issue Comment** with `gh issue comment` containing the validated `think.md` (optionally wrapped in `<details><summary>🧠 <b>think.md (Options, Blast Radius &amp; Constraints)</b></summary> ... </details>`).
+- **Branch Storage (when enabled)**: commit `specs/issue-<number>/think.md` on branch `specs/issue-<number>`.
