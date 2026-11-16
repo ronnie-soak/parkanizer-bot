@@ -1,0 +1,43 @@
+[INTENT]
+A python playwright script that automatically reserves my parking spots on tidaro parkanizer https://parkanizer.com/
+[CONTEXT]
+The script must:
+- automatically login to tidaro parkanizer https://parkanizer.com/ using my credentials. This is a simple login/password, no 2FA.
+- navigate to the `BOOK A SPOT` tab
+- repeatedly refresh the page until it finds a `Book any` button. This could match any date in the future, or up to a max amount of days in the future (as parameter). This must match the configured location.
+- click each `Book any` button, confirming the booking if required.
+- stop if no `Book any` button is found after a predefined duration.
+- generate a .log file for each execution:
+  * start time
+  * end time
+  * number of refreshes
+  * number of bookings
+  * any error in execution
+- generate screenshots, with timestamp, for each execution for the main steps:
+  * login
+  * `BOOK A SPOT` navigation
+  * Page with `Book any` button (if any)
+  * Last refreshed page without `Book any` button (if alternative exit condition)  
+[CONSTRAINTS]
+Only write a /specs/parkanizer-bot/think.md, not the script itself.
+The script must run on MacOS with python 3.15.2, and on Ubuntu.
+All parameters are read from a configuration file (.env):
+- login
+- password
+- desired parking location
+- `BOOK A SPOT` button label
+- `Book any` button label
+- delay between refreshes
+- max duration
+The script should have a set of execution flags to allow for testing and reporting:
+- --list : give a summary, ordered per date, of any existing confirmed bookings, or waiting queues
+- --dry-run : run everything but do not confirm any booking
+The script should come with a clear README_`OS`.md for each OS: macOS and Ubuntu:
+- setup
+- installation
+- testing
+- scheduling
+There should be a sample command to add a scheduled execution every day at 7.58am on my macOS machine.
+[DONE WHEN]
+The /specs/parkanizer-bot/think.md is ready to be reviewed before being passed to the plan agent.
+
