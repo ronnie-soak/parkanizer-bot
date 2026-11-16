@@ -28,7 +28,7 @@
 ## Chosen Approach
 - **Selected:** Option 1: Python Playwright browser automation.
 - **Reasoning:** Playwright directly satisfies the requested Python browser-based interaction and supports macOS and Ubuntu. Use only the normal site UI, keep all actions serial and location/date-scoped, and make non-commit behavior explicit for `--dry-run`. No existing application code or browser automation dependency exists in this repository to reuse.
-- **Approved By:** JPRE
+- **Approved By:** JPRE (Developer) on 2026-11-16;JPRE (Architect) on 2026-11-16
 
 ## System Flow & Responsibilities
 - **Request Tracing:** This repository contains no application runtime to trace; its current tracked context is the request in `prompt.txt` and agent/workflow documentation. The proposed tool starts from CLI arguments and `.env`, launches a browser with Playwright, signs in at `https://parkanizer.com/`, opens the configured `BOOK A SPOT` tab, and inspects only the configured parking location and dates within the configured range. In monitoring mode, it refreshes at the configured interval until a matching `Book any` action appears or the maximum duration expires. It processes matching actions sequentially, confirms only in normal mode when the UI requires it, and verifies the resulting state. `--list` reports current confirmed bookings and waiting queues ordered by date without entering the polling/booking loop. Every invocation records its start/end time, refresh and booking counts, errors, and requested screenshots.
