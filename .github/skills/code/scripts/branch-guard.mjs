@@ -9,7 +9,8 @@ function fail(message) {
 	throw new ValidationError(message);
 }
 
-export const BRANCH_PATTERN = /^(feature|fix|chore)\/issue-\d+-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+//export const BRANCH_PATTERN = /^(feature|fix|chore)\/issue-\d+-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const BRANCH_PATTERN = /^(feature|fix|chore)\/.*$/;
 export const PROTECTED_BRANCHES = [/^main$/, /^develop$/, /^release\/.*$/];
 export const DEFAULT_BASE = "main";
 export const DEFAULT_MAX_AGE_DAYS = 5;
